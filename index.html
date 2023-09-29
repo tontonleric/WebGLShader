@@ -42,7 +42,6 @@
 				col *= 1.0 - exp(-6.0*abs(d));
 				col *= 0.8 + 0.2*cos(150.0*d);
 				col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
-			
 				
 				
 				gl_FragColor = vec4( col, 1.0 );
