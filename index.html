@@ -11,131 +11,45 @@
 		<div id="container"></div>
 		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - shader demo. featuring <a href="http://www.pouet.net/prod.php?which=52761" target="_blank" rel="noopener">Monjori by Mic</a></div>
 
-		<script id="vertexShader" type="x-shader/x-vertex" src="/index.vert">
+		<script id="vertexShader" type="x-shader/x-vertex">
 
-				varying vec2 fragCoord;
+			varying vec2 vUv;
 
-				void main()	{
+			void main()	{
 
-					fragCoord = uv;
+				vUv = uv;
 
-					gl_Position = vec4( position, 1.0 );
+				gl_Position = vec4( position, 1.0 );
 
-				}	
+			}
 
 		</script>
 
 		<script id="fragmentShader" type="x-shader/x-fragment">
-			#define AA 1
-			varying vec2 fragCoord;
 
-			uniform float iTime;
+			varying vec2 vUv;
 
-			float mandelbrot( in vec2 c )
-			{
-				#if 1
-				{
-					float c2 = dot(c, c);
-					// skip computation inside M1 - https://iquilezles.org/articles/mset1bulb
-					if( 256.0*c2*c2 - 96.0*c2 + 32.0*c.x - 3.0 < 0.0 ) return 0.0;
-					// skip computation inside M2 - https://iquilezles.org/articles/mset2bulb
-					if( 16.0*(c2+2.0*c.x+1.0) - 1.0 < 0.0 ) return 0.0;
-				}
-				#endif
+			uniform float time;
 
-
-				const float B = 256.0;
-				float l = 0.0;
-				vec2 z  = vec2(0.0);
-				for( int i=0; i<512; i++ )
-				{
-					z = vec2( z.x*z.x - z.y*z.y, 2.0*z.x*z.y ) + c;
-					if( dot(z,z)>(B*B) ) break;
-					l += 1.0;
-				}
-
-				if( l>511.0 ) return 0.0;
-				
-				// ------------------------------------------------------
-				// smooth interation count
-				//float sl = l - log(log(length(z))/log(B))/log(2.0);
-
-				// equivalent optimized smooth interation count
-				float sl = l - log2(log2(dot(z,z))) + 4.0;
-
-				float al = smoothstep( -0.1, 0.0, sin(0.5*6.2831*iTime ) );
-				l = mix( l, sl, al );
-
-				return l;
+			float sdCircle(in vec2 p, in float r){
+				return length(p - 0.5) - r; 
 			}
 
 			void main()	{
 
-				/*vec2 p = - 1.0 + 2.0 * vUv;
-				float a = time * 40.0;
-				float d, e, f, g = 1.0 / 40.0 ,h ,i ,r ,q;
-
-				e = 400.0 * ( p.x * 0.5 + 0.5 );
-				f = 400.0 * ( p.y * 0.5 + 0.5 );
-				i = 200.0 + sin( e * g + a / 150.0 ) * 20.0;
-				d = 200.0 + cos( f * g / 2.0 ) * 18.0 + cos( e * g ) * 7.0;
-				r = sqrt( pow( abs( i - e ), 2.0 ) + pow( abs( d - f ), 2.0 ) );
-				q = f / r;
-				e = ( r * cos( q ) ) - a / 2.0;
-				f = ( r * sin( q ) ) - a / 2.0;
-				d = sin( e * g ) * 176.0 + sin( e * g ) * 164.0 + r;
-				h = ( ( f + d ) + a / 2.0 ) * g;
-				i = cos( h + r * p.x / 1.3 ) * ( e + e + a ) + cos( q * g * 6.0 ) * ( r + h / 3.0 );
-				h = sin( f * g ) * 144.0 - sin( e * g ) * 212.0 * p.x;
-				h = ( h + ( f - e ) * q + sin( r - ( a + h ) / 7.0 ) * 10.0 + i / 4.0 ) * g;
-				i += cos( h * 2.3 * sin( a / 350.0 - q ) ) * 184.0 * sin( q - ( r * 4.3 + a / 12.0 ) * g ) + tan( r * g + h ) * 184.0 * cos( r * g + h );
-				i = mod( i / 5.6, 256.0 ) / 64.0;
-				if ( i < 0.0 ) i += 4.0;
-				if ( i >= 2.0 ) i = 4.0 - i;
-				d = r / 350.0;
-				d += sin( d * d * 8.0 ) * 0.52;
-				f = ( sin( a * g ) + 1.0 ) / 2.0;
-				gl_FragColor = vec4( vec3( f * i / 1.6, i / 2.0 + d / 13.0, i ) * d * p.x + vec3( i / 1.3 + d / 8.0, i / 2.0 + d / 18.0, i ) * d * ( 1.0 - p.x ), 1.0 );*/
-				vec3 col = vec3(0.0);
-    
-				#if AA>1
-					for( int m=0; m<AA; m++ )
-					for( int n=0; n<AA; n++ )
-					{
-						vec2 p = (2.0*(fragCoord.xy+vec2(float(m),float(n))/float(AA)));
-						float w = float(AA*m+n);
-						float time = iTime + 0.5*(1.0/24.0)*w/float(AA*AA);
-				#else    
-						vec2 p = (2.0*fragCoord.xy);
-						float time = iTime;
-				#endif
-					
-						float zoo = 0.62 + 0.38*cos(.07*time);
-						float coa = cos( 0.15*(1.0-zoo)*time );
-						float sia = sin( 0.15*(1.0-zoo)*time );
-						zoo = pow( zoo,8.0);
-						vec2 xy = vec2( p.x*coa-p.y*sia, p.x*sia+p.y*coa);
-						vec2 c = vec2(-.745,.186) + xy*zoo;
-
-						float l = mandelbrot(c);
-
-						col += 0.5 + 0.5*cos( 3.0 + l*0.15 + vec3(0.0,0.6,1.0));
-				#if AA>1
-					}
-					col /= float(AA*AA);
-				#endif
-
-
-				//float d = length(p);
-				gl_FragColor = vec4( col, 1.0);
+				float d = sdCircle(vUv, 0.2);
+				vec3 col = d > 0.0 ? vec3(0.9, 0.6, 0.3) : vec3(0.65, 0.85, 1.0);
+				col *= 1.0 - exp(-6.0*abs(d));
+				col *= 0.8 + 0.2*cos(150.0*d);
+				col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
+			
+				
+				
+				gl_FragColor = vec4( col, 1.0 );
 
 			}
 
 		</script>
-
-		<!-- Import maps polyfill -->
-		<!-- Remove this when import maps will be widely supported -->
-		<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
 
 		<script type="importmap">
 			{
@@ -168,7 +82,7 @@
 				const geometry = new THREE.PlaneGeometry( 2, 2 );
 
 				uniforms = {
-					iTime: { value: 1.0 }
+					time: { value: 1.0 }
 				};
 
 				const material = new THREE.ShaderMaterial( {
@@ -184,7 +98,8 @@
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth-20, window.innerHeight-20 );
+				//renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setSize( 512, 512 );
 				container.appendChild( renderer.domElement );
 
 				window.addEventListener( 'resize', onWindowResize );
@@ -203,8 +118,7 @@
 
 				requestAnimationFrame( animate );
 
-				uniforms[ 'iTime' ].value = performance.now() / 1000;
-				
+				uniforms[ 'time' ].value = performance.now() / 1000;
 
 				renderer.render( scene, camera );
 
