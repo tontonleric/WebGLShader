@@ -30,12 +30,16 @@
 
 			uniform float time;
 
+			float mathFunc(in vec2 p, in vec2 r){
+				vec2 t = abs(p - 0.5) - r;
+				return length(max(t,0.0)) + min(max(t.x,t.y),0.0); 
+			}
+
 			vec3 palette(in float t) {
 				vec3 a = vec3(0.5, 0.5, 0.5);
 				vec3 b = vec3(0.5, 0.5, 0.5);
 				vec3 c = vec3(1.0, 1.0, 1.0);
 				vec3 d = vec3(0.263, 0.416, 0.557);
-
 				return a + b*cos( 6.28318*(c*t+d) );
 			}
 
@@ -47,8 +51,8 @@
 				for(float i = 0.; i < 4.; i++){
 					p = fract(p*1.5)-0.5;
 
-					float d = length(p)*exp(-length(p0))-0.5;
-					vec3 col = palette(length(p0) + i*.4 +  time*0.4);
+					float d = mathFunc(p)*exp(-mathFunc(p0))-0.5;
+					vec3 col = palette(mathFunc(p0) + i*.4 +  time*0.4);
 					d = sin(d*8. + time)/8.;
 					d = abs(d);
 				
