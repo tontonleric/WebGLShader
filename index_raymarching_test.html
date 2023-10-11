@@ -8,7 +8,7 @@
 	<body>
 
 		<div id="container"></div>
-		<div id="info">Tutoriel de Kishimisu mais sous three.js</div>
+		<div id="info">Adaptation dans three.js du shadertoy https://www.shadertoy.com/view/csB3zy</div>
 	
 		<script id="vertexShader" type="x-shader/x-vertex">
 
@@ -218,7 +218,7 @@
 			void main( )
 			{
 				// coordinates
-				vec2 p = vUv;
+				vec2 p = vUv*2.-1.0;
 				vec2 mo = vec2(0.);
 				
 				//float time = mod( iTime, 48.0 );
@@ -377,7 +377,7 @@
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
 				//renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.setSize( 1200, 1200 );
+				renderer.setSize( 640, 480 );
 				container.appendChild( renderer.domElement );
 
 				window.addEventListener( 'resize', onWindowResize );
@@ -386,7 +386,7 @@
 
 			function onWindowResize() {
 
-				renderer.setSize( 1200, 1200 );
+				renderer.setSize( 640, 480 );
 
 			}
 
