@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Test de L-Norm avec Quilez Render</title>
+		<title>Template pour afficher en 2D</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	</head>
 	<body>
 
 		<div id="container"></div>
-		<div id="info">Test en L-Norm pour un carré avec rendu Quilez. Attention, l'utilisation de fonction de transfo laisse penser à une rotation du carré mais c'est faux.</div>
+		<div id="info">Description du shader</div>
 	
 		<script id="vertexShader" type="x-shader/x-vertex">
 
@@ -30,52 +30,37 @@
 
 			uniform float time;
 
-			//DO NOT USE
+			// name: rotation
+			// description : Cette fonction permet de faire une rotation d'un point p autour de l'origine avec un angle a.
 			vec2 rotation(vec2 p, float a){
 				return vec2(cos(a)*p.x + sin(a)*p.y, cos(a)*p.y-sin(a)*p.x);
 			}
 
+			// name: translation
+			// description : Cette fonction permet de faire une translation d'un point p avec un vecteur t.
 			vec2 translation(vec2 p, vec2 t){
 				return p - t;
 			}
 
+			// name: scale
+			// description : Cette fonction permet de faire une mise à l'échelle d'un point p avec un vecteur s.
 			vec2 scale(vec2 p, vec2 s){
 				return p / s;
 			}
-			//DO NOT USE
 
-
+			// name: smoothMin
+			// description : Cette fonction calcule la distance minimale entre deux valeurs dstA et dstB en utilisant une interpolation en douceur. Le paramètre k contrôle la douceur de l'interpolation.
 			float smoothMin(float dstA, float dstB, float k){
 				float h = max(k-abs(dstA-dstB), 0.) / k;
 				return min(dstA, dstB) - h*h*h*k*(1.0/6.0);
 			}
 
-			// b.x = width
-			// b.y = height
-			// r.x = roundness top-right  
+			// a = coin inférieur gauche
+			// b = coin inférieur droit
+			// th = hauteur du cadre  
 			// r.y = roundness boottom-right
 			// r.z = roundness top-left
 			// r.w = roundness bottom-left
-			float sdRoundedBox( in vec2 p, in vec2 b, in vec4 r )
-			{
-				r.xy = (p.x>0.0)?r.xy : r.zw;
-				r.x  = (p.y>0.0)?r.x  : r.y;
-				vec2 q = abs(p)-b+r.x;
-				return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
-			}
-
-			float sdBoxLN( in vec2 p, in vec2 rad )
-			{
-				p = abs(p)-rad;
-				return max(p.x,p.y);
-			}
-
-			float sdBox( in vec2 p, in vec2 b )
-			{
-				vec2 d = abs(p)-b;
-				return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
-			}
-
 			float sdOrientedBox( in vec2 p, in vec2 a, in vec2 b, float th )
 			{
 				float l = length(b-a);
@@ -86,32 +71,25 @@
 				return length(max(q,0.0)) + min(max(q.x,q.y),0.0);    
 			}
 
-			float map(vec2 p){
-				vec2 p1 = rotation(p, time/10.0);
-				//vec2 p2 = rotation(translation(p, vec2(-0.2,-0.2)), time);
-
-				//float d1 = sdBox(p1, vec2(0.2));
-				float d1 = sdBoxLN(p1, vec2(0.2));
-				//float d1 = sdOrientedBox(p, vec2(0.2), vec2(0.1), 0.5);
-				//float d2 = sdBox(p2, vec2(0.2));
-				//float result = smoothMin(d1, d2, 0.1);
-				float result = d1;	
+		
+			float map(in vec2 p){
+				vec2 a = rotation(vec2(0.1, 0.0),time);
+				vec2 b = rotation(vec2(0.5, 0.0),time);
+				float th = 0.2;
+				float result = sdOrientedBox(p, a, b, th);
 				return result;
 			}
 
+
 			
 			void main(){
-				//vec2 p = vec2(cos(time)*vUv.x + sin(time)*vUv.y, cos(time)*vUv.y-sin(time)*vUv.x);
-				vec2 p = vUv;
-
-				float d = map(p);
+				float d = map(vUv);
 				vec3 col = d > 0.0 ? vec3(0.9, 0.6, 0.3) : vec3(0.65, 0.85, 1.0);
 				col *= 1.0 - exp(-6.0*abs(d));
 				col *= 0.8 + 0.2*cos(150.0*d);
 				col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
-				
-				
-				gl_FragColor = vec4( col, 1.0 );
+
+				gl_FragColor = vec4(col, 1.);
 			}
 
 		</script>
