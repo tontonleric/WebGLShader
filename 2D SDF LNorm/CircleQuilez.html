@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>2D SDF | L-Norm | Ellipse | Quilez</title>
+		<title>2D SDF | L-Norm | Circle | Quilez</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	</head>
 	<body>
 
 		<div id="container"></div>
-		<div id="info">2D SDF | L-Norm | Ellipse | Quilez<br/>Merge de deux ellipse</div>
+		<div id="info">2D SDF | L-Norm | Circle | Quilez<br/>Merge de deux cercles</div>
 	
 		<script id="vertexShader" type="x-shader/x-vertex">
 
@@ -50,20 +50,20 @@
 				return min(dstA, dstB) - h*h*h*k*(1.0/6.0);
 			}
 
-			float sdEllipse( in vec2 p, in vec2 r )
+			float sdCircle( in vec2 p, in float r )
 			{
 				p = abs(p);
-				p = max(p,(p-r).yx);
-				float m = dot(r,r);
-				float d = p.y-p.x;
-				return p.x - (r.y*sqrt(m-d*d)-r.x*d)*r.x/m;
+				p = max(p,p.yx-r);
+				float a = 0.5*(p.x+p.y);
+				float b = 0.5*(p.x-p.y);
+				return a - sqrt(r*r*0.5-b*b);
 			}
 
 			
 
 			float map(vec2 p){				
-				float d1 = sdEllipse(translation(p, vec2(-0.3, 0.)), vec2(0.3, 0.2));
-				float d2 = sdEllipse(translation(p, vec2(0.2,0.1)), vec2(0.2, 0.3));
+				float d1 = sdCircle(translation(p, vec2(-0.3, 0.)), 0.3);
+				float d2 = sdCircle(translation(p, vec2(0.2,0.1)), 0.3);
 				float result = smoothMin(d1, d2, 0.1);	
 				return result;
 			}
